@@ -3,23 +3,31 @@ package com.bookkeeping.app.Utils;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 通用 http 请求 API.
  *
- * @author liyibin
+ * @author jilei
  * @date 2021-12-10
  */
 @SuppressWarnings("unchecked")
@@ -29,7 +37,6 @@ public class GeneralRestApi {
 
     private final RestTemplate restTemplate;
 
-    @Autowired
     public GeneralRestApi(final RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -117,13 +124,19 @@ public class GeneralRestApi {
 
         String requestUrl = url;
         if (!CollectionUtils.isEmpty(request.getParams())) {
-            requestUrl = requestUrl + "?" + HttpUtils.convertToRequestParams(request.getParams());
+            String s = request.getParams().toString().substring(1,request.getParams().toString().length()-1);
+            requestUrl = requestUrl + "?" + s;
         }
 
         HttpHeaders headers = new HttpHeaders();
 
         if (mediaType != null) {
-            headers.setContentType(mediaType);
+//            headers.setContentType(mediaType);
+            List<MediaType> mediaTypes = new ArrayList<>();
+            mediaTypes.add(MediaType.parseMediaType(MediaType.TEXT_HTML_VALUE));
+            mediaTypes.add(MediaType.parseMediaType(MediaType.APPLICATION_XHTML_XML_VALUE));
+            mediaTypes.add(MediaType.parseMediaType(MediaType.APPLICATION_XML_VALUE));
+            headers.setAccept(mediaTypes);
         }
 
         if (request.getHeaders() != null) {
@@ -168,4 +181,14 @@ public class GeneralRestApi {
 
         return responseEntity.getBody();
     }
+
+    /**
+     * 构建请求表单数据字符串.
+     *
+     * @param paramMap 请求参数
+     * @return url
+     */
+//    public static String convertToRequestParams(final Map<String, Object> paramMap) {
+//        return Joiner.on("&").withKeyValueSeparator("=").join(paramMap);
+//    }
 }

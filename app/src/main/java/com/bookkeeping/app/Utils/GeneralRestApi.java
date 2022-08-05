@@ -2,34 +2,24 @@ package com.bookkeeping.app.Utils;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Map;
 
 /**
  * 通用 http 请求 API.
  *
  * @author jilei
- * @date 2021-12-10
+ * @date 2022-08-05
  */
 @SuppressWarnings("unchecked")
 @Slf4j
@@ -125,8 +115,12 @@ public class GeneralRestApi {
 
         String requestUrl = url;
         if (!CollectionUtils.isEmpty(request.getParams())) {
-            String s = request.getParams().toString().substring(1,request.getParams().toString().length()-1);
-            requestUrl = requestUrl + "?" + s;
+            StringBuilder sbRequestUrl = new StringBuilder(requestUrl);
+            for (String key : request.getParams().keySet()) {
+                sbRequestUrl.append("?");
+                sbRequestUrl.append(key).append("=").append(request.getParams().get(key));
+            }
+            requestUrl = sbRequestUrl.toString();
         }
 
         HttpHeaders headers = new HttpHeaders();
@@ -165,22 +159,12 @@ public class GeneralRestApi {
                 entity = new HttpEntity<>(request.getRequestData(), headers);
             }
         }
-        ResponseEntity<String> responseEntity = restTemplate.
-                exchange(requestUrl , httpMethod , entity, String.class);
-//        ResponseEntity<GeneralRestResponse> responseEntity = request.getPathVariables() == null
-//                ? restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class)
-//                : restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class, request.getPathVariables());
-        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+
+        ResponseEntity<String> responseEntityString = request.getPathVariables() == null ? restTemplate.
+                exchange(requestUrl , httpMethod , entity, String.class) : restTemplate.exchange(requestUrl, httpMethod, entity, String.class, request.getPathVariables());
+        if (!responseEntityString.getStatusCode().is2xxSuccessful()) {
             log.error("请求三方数据异常：url=[{}]", url);
         }
-
-        String body = responseEntity.getBody().substring(8, responseEntity.getBody().length() - 2);
-        try {
-            URLDecoder.decode(body, "UTF-8");
-            body.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-        return com.alibaba.fastjson2.JSONObject.parseObject(body,GeneralRestResponse.class);
+        return JSONObject.parseObject(responseEntityString.getBody(),GeneralRestResponse.class);
     }
 }

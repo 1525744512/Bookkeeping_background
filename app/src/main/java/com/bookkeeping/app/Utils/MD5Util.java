@@ -8,7 +8,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Created by admin on 2018/3/5.
+ * MDS算法加密
+ * @author jilei
+ * @date 2022-08-05
  */
 public class MD5Util {
 

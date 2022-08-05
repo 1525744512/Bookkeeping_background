@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @author liyibin
- * @date 2021-07-05
+ * @author jilei
+ * @date 2022-08-05
  */
 @Data
 public class GeneralRestRequest {

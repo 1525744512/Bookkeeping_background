@@ -9,6 +9,11 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+/**
+ * JWT令牌
+ * @author jilei
+ * @date 2022-08-05
+ */
 public class JwtUtil {
     //设置过期时间
     private static final long EXPIRE_DATE=30*60*100000;

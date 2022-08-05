@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author liyibin
- * @date 2021-07-05
+ * @author jilei
+ * @date 2022-08-05
  */
 public class GeneralRestResponse extends JSONObject {
 

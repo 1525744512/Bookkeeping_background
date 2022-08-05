@@ -18,9 +18,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -131,12 +132,7 @@ public class GeneralRestApi {
         HttpHeaders headers = new HttpHeaders();
 
         if (mediaType != null) {
-//            headers.setContentType(mediaType);
-            List<MediaType> mediaTypes = new ArrayList<>();
-            mediaTypes.add(MediaType.parseMediaType(MediaType.TEXT_HTML_VALUE));
-            mediaTypes.add(MediaType.parseMediaType(MediaType.APPLICATION_XHTML_XML_VALUE));
-            mediaTypes.add(MediaType.parseMediaType(MediaType.APPLICATION_XML_VALUE));
-            headers.setAccept(mediaTypes);
+            headers.setContentType(mediaType);
         }
 
         if (request.getHeaders() != null) {
@@ -169,26 +165,22 @@ public class GeneralRestApi {
                 entity = new HttpEntity<>(request.getRequestData(), headers);
             }
         }
-
-        ResponseEntity<GeneralRestResponse> responseEntity = request.getPathVariables() == null
-                ? restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class)
-                : restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class, request.getPathVariables());
-
+        ResponseEntity<String> responseEntity = restTemplate.
+                exchange(requestUrl , httpMethod , entity, String.class);
+//        ResponseEntity<GeneralRestResponse> responseEntity = request.getPathVariables() == null
+//                ? restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class)
+//                : restTemplate.exchange(requestUrl, httpMethod, entity, GeneralRestResponse.class, request.getPathVariables());
         if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("请求三方数据异常：url=[{}]", url);
-//            throw new IShopRuntimeException(ResponseEnum.THIRD_REQUEST_ERROR, "请求三方数据异常");
         }
 
-        return responseEntity.getBody();
+        String body = responseEntity.getBody().substring(8, responseEntity.getBody().length() - 2);
+        try {
+            URLDecoder.decode(body, "UTF-8");
+            body.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        return com.alibaba.fastjson2.JSONObject.parseObject(body,GeneralRestResponse.class);
     }
-
-    /**
-     * 构建请求表单数据字符串.
-     *
-     * @param paramMap 请求参数
-     * @return url
-     */
-//    public static String convertToRequestParams(final Map<String, Object> paramMap) {
-//        return Joiner.on("&").withKeyValueSeparator("=").join(paramMap);
-//    }
 }
